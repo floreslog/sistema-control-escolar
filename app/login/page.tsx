@@ -193,7 +193,7 @@ export default function LoginPage() {
                 </span>
                 Recordarme
               </label>
-              <a href="#" className="font-semibold text-[#1f2328] hover:underline underline-offset-4">
+              <a href="/recuperar" className="font-semibold text-[#1f2328] hover:underline underline-offset-4">
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
