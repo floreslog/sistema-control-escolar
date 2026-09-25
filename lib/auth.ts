@@ -73,3 +73,17 @@ export async function getSession(): Promise<SessionPayload | null> {
 }
 
 export { COOKIE_NAME };
+
+// preguntas de seguridad para recuperar contrasenia
+
+function normalizarRespuesta(respuesta: string): string {
+  return respuesta.trim().toLowerCase();
+}
+
+export async function hashRespuestaSeguridad(respuesta: string): Promise<string> {
+  return bcrypt.hash(normalizarRespuesta(respuesta), 10);
+}
+
+export async function verificarRespuestaSeguridad(respuesta: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(normalizarRespuesta(respuesta), hash);
+}
