@@ -1,35 +1,94 @@
-import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-import LogoutButton from '@/components/LogoutButton';
+import StatCard from '@/components/docente/StatCard';
 
-export default async function DocenteDashboard() {
-  const session = await getSession();
+/* 
+TODO HARDCODEADO SOLO PARA VISUALIZAR
+*/
 
-  //si alguien llega aqui sin validacion lo redirige al login
-  if (!session || session.rol !== 'docente') {
-    redirect('/login');
-  }
+type Grupo = {
+  grupoID: number;
+  nombreGrupo: string; 
+  activo: boolean;
+};
 
-  /*
-    @TODO: AQUI ES EL PANEL DEL DOCENTE, ESTO ES EL MODULO PRINCIPAL
-  */
+type Asignatura = {
+  asignaturaID: number;
+  nombreAsignatura: string; 
+};
+
+type CapturaPendiente = {
+  grupoAsignaturaID: number;
+  nombreGrupo: string;
+  nombreAsignatura: string;
+  numeroParcial: number; 
+  nombreOportunidad: string; 
+};
+
+const GRUPOS_PLACEHOLDER: Grupo[] = [
+  { grupoID: 1, nombreGrupo: 'Grupo ejemplo 1', activo: true },
+  { grupoID: 2, nombreGrupo: 'Grupo ejemplo 2', activo: true },
+];
+
+const ASIGNATURAS_PLACEHOLDER: Asignatura[] = [
+  { asignaturaID: 1, nombreAsignatura: 'Materia ejemplo 1' },
+];
+
+const PENDIENTES_PLACEHOLDER: CapturaPendiente[] = [
+  {
+    grupoAsignaturaID: 1,
+    nombreGrupo: 'Grupo ejemplo 1',
+    nombreAsignatura: 'Materia ejemplo 1',
+    numeroParcial: 1,
+    nombreOportunidad: 'Ordinario',
+  },
+  {
+    grupoAsignaturaID: 2,
+    nombreGrupo: 'Grupo ejemplo 2',
+    nombreAsignatura: 'Materia ejemplo 1',
+    numeroParcial: 1,
+    nombreOportunidad: 'Primera Extraordinaria',
+  },
+];
+
+export default async function DocenteDashboardPage() {
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <header className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Bienvenido, {session.nombre}
-          </h1>
-          <p className="text-sm text-gray-500">Panel del docente</p>
-        </div>
-        <LogoutButton />
-      </header>
+    <section className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Grupos activos" value={GRUPOS_PLACEHOLDER.length} />
+        <StatCard label="Materias" value={ASIGNATURAS_PLACEHOLDER.length} />
+        <StatCard label="Alumnos" value="—" />
+        <StatCard
+          label="Capturas pendientes"
+          value={PENDIENTES_PLACEHOLDER.length}
+          tone="warning"
+        />
+      </div>
 
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <p className="text-gray-600">
-          Aquí van tus grupos, materias y captura de calificaciones.
+      <div className="bg-white rounded-xl p-6">
+        <p className="text-sm font-semibold text-gray-900 mb-3">
+          Grupos con captura pendiente
         </p>
-      </section>
-    </main>
+        <div className="divide-y divide-gray-100">
+          {PENDIENTES_PLACEHOLDER.map((p) => (
+            <div
+              key={p.grupoAsignaturaID}
+              className="flex items-center justify-between py-3 text-sm"
+            >
+              <span className="text-gray-700">
+                {p.nombreGrupo} - {p.nombreAsignatura}
+              </span>
+              <span
+                className={`font-medium ${
+                  p.nombreOportunidad === 'Ordinario' ? 'text-amber-600' : 'text-blue-600'
+                }`}
+              >
+                {p.nombreOportunidad === 'Ordinario'
+                  ? `Parcial ${p.numeroParcial}`
+                  : p.nombreOportunidad}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
