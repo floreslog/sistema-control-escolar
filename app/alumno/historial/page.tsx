@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { z } from 'zod';
 import Detalle, { ListaDatos } from '@/components/Detalle';
 import EstadoBadge from '@/components/EstadoBadge';
+import PageHeader from '@/components/Pageheader';
 import { requireAlumno } from '@/lib/alumno/requireAlumno';
 import { getCiclos, getMateriasDeCiclo, getParametros } from '@/lib/alumno/queries';
 import {
@@ -25,17 +26,15 @@ export default async function AlumnoHistorialPage({
 
   if (ciclos.length === 0) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8">
-        <h1 className="text-2xl font-bold text-gray-900">Historial</h1>
-        <section className="mt-6 rounded-xl border border-gray-200 bg-white p-6">
+      <div>
+        <PageHeader titulo="Historial" />
+        <section className="rounded-xl border border-[#dcdfe3] bg-white p-6">
           <p className="text-sm text-gray-600">Aún no tienes materias registradas en tu historial.</p>
         </section>
       </div>
     );
   }
 
-  // ?ciclo=ID solo sirve para ELEGIR entre los ciclos del propio alumno:
-  // se valida y se busca dentro de su lista; si no coincide, se usa el más reciente.
   const crudo = Array.isArray(sp.ciclo) ? sp.ciclo[0] : sp.ciclo;
   const parseado = cicloParamSchema.safeParse(crudo);
   const seleccionado =
@@ -44,13 +43,11 @@ export default async function AlumnoHistorialPage({
   const materias = await getMateriasDeCiclo(seleccionado.cicloId);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <header className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-900">Historial</h1>
-      </header>
+    <div>
+      <PageHeader titulo="Historial" />
 
       {/* Selector de ciclo */}
-      <nav aria-label="Ciclos escolares" className="-mx-4 mb-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <nav aria-label="Ciclos escolares" className="-mx-5 mb-4 overflow-x-auto px-5 min-[861px]:mx-0 min-[861px]:px-0">
         <ul className="flex gap-2">
           {ciclos.map((c) => {
             const activo = c.cicloId === seleccionado.cicloId;
@@ -85,7 +82,7 @@ export default async function AlumnoHistorialPage({
       <p className="mb-4 text-sm text-gray-600">{resumenCiclo(seleccionado)}</p>
 
       <section aria-label={`Materias del ciclo ${seleccionado.nombreCiclo}`}>
-        <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-[#dcdfe3] bg-white">
           {materias.map((m) => (
             <FilaMateria key={m.inscripcionId} materia={m} numParciales={parametros.numParciales} />
           ))}
