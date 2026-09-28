@@ -27,7 +27,7 @@ export default async function AlumnoActualPage() {
         <h1 className="text-2xl font-bold text-gray-900">Ciclo actual</h1>
         {perfil && (
           <p className="mt-1 text-sm text-gray-500">
-            {perfil.nombreCompleto}, matrícula {perfil.matricula}
+            Tu informacion correspondiente al ciclo actual.
           </p>
         )}
       </header>
