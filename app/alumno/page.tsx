@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Detalle, { ListaDatos } from '@/components/Detalle';
 import EstadoBadge from '@/components/EstadoBadge';
+import PageHeader from '@/components/Pageheader';
 import { requireAlumno } from '@/lib/alumno/requireAlumno';
 import { getMateriasActuales, getParametros } from '@/lib/alumno/queries';
 import {
@@ -10,7 +11,6 @@ import {
   type MateriaActual,
 } from '@/lib/alumno/types';
 
-// Menor número = más urgente. Define el orden de las tarjetas.
 const PRIORIDAD: Record<Estado, number> = {
   Reprobado: 0,
   'Pendiente de extraordinario': 1,
@@ -62,16 +62,14 @@ export default async function AlumnoActualPage() {
   const hayReprobada = requierenAtencion.some((m) => m.estado === 'Reprobado');
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Ciclo actual</h1>
-        {materias.length > 0 && (
-          <p className="mt-1 text-sm text-gray-600">{resumenTexto(materias)}</p>
-        )}
-      </header>
+    <div>
+      <PageHeader
+        titulo="Ciclo actual"
+        descripcion={materias.length > 0 ? resumenTexto(materias) : undefined}
+      />
 
       {materias.length === 0 ? (
-        <section className="rounded-xl border border-gray-200 bg-white p-6">
+        <section className="rounded-xl border border-[#dcdfe3] bg-white p-6">
           <h2 className="text-base font-semibold text-gray-900">Sin materias en curso</h2>
           <p className="mt-1 text-sm text-gray-600">
             No tienes inscripciones en un ciclo activo. Si crees que es un error, consulta con tu
@@ -161,7 +159,7 @@ function MateriaCard({
   ];
 
   return (
-    <article className="flex flex-col rounded-xl border border-gray-200 bg-white p-5">
+    <article className="flex flex-col rounded-xl border border-[#dcdfe3] bg-white p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-2">
           <h3 className="font-semibold text-gray-900">{m.nombre}</h3>
@@ -188,7 +186,7 @@ function MateriaCard({
             className={`rounded-md border px-2.5 py-1 text-sm ${
               cal === null
                 ? 'border-dashed border-gray-300 text-gray-400'
-                : 'border-gray-200 text-gray-900'
+                : 'border-[#dcdfe3] text-gray-900'
             }`}
           >
             <span className="text-gray-500">P{i + 1}</span>{' '}
