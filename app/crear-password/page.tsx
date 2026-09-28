@@ -49,45 +49,36 @@ function CrearPasswordForm() {
   }
 
   return (
-    <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-[#1f2328]">
+    <main className="relative min-h-screen overflow-hidden bg-white lg:grid lg:grid-cols-2 lg:bg-[linear-gradient(90deg,#fff_0%,#fff_40%,#f3f4f6_64%,#e4e8ec_100%)]">
 
-      {/* Panel de marca */}
-      <section className="relative text-white flex flex-col items-center justify-center text-center px-12 py-10 overflow-hidden order-1">
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true">
-          <defs>
-            <pattern id="rules2" width="40" height="38" patternUnits="userSpaceOnUse">
-              <path d="M0 37.5H40" stroke="#fff" strokeOpacity=".06" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#rules2)" />
-          <line x1="72" y1="0" x2="72" y2="100%" stroke="#fff" strokeOpacity=".12" className="hidden md:block" />
-        </svg>
-
-        <div className="relative z-10 flex flex-col items-center gap-5">
-          <svg viewBox="0 0 96 96" className="w-16 h-16 md:w-24 md:h-24" role="img" aria-label="Escudo de Control Escolar">
-            <circle cx="48" cy="48" r="47" fill="#fff" />
-            <circle cx="48" cy="48" r="42" fill="none" stroke="#1f2328" strokeWidth="1.5" />
-            <path d="M48 36 C41 31 32 30 25 32 V61 C32 59 41 60 48 65 Z" fill="none" stroke="#1f2328" strokeWidth="3" strokeLinejoin="round" />
-            <path d="M48 36 C55 31 64 30 71 32 V61 C64 59 55 60 48 65 Z" fill="none" stroke="#1f2328" strokeWidth="3" strokeLinejoin="round" />
-            <path d="M48 69 V73" stroke="#1f2328" strokeWidth="3" strokeLinecap="round" />
-            <circle cx="48" cy="22" r="2.5" fill="#1f2328" />
-          </svg>
-          <div>
-            <div className="text-xl md:text-2xl font-bold tracking-tight">Control Escolar</div>
-            <div className="text-sm text-white/70 mt-2">Sistema de control académico</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Panel del formulario */}
-      <section className="bg-white md:-ml-7 rounded-t-3xl md:rounded-l-[28px] md:rounded-tr-none px-6 py-10 md:px-16 md:py-14 flex flex-col justify-center order-2">
+      {/* ---------- Panel del formulario ---------- */}
+      <section className="relative z-10 flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-16">
         <div className="w-full max-w-[380px] mx-auto">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Crea tu contraseña</h1>
-          <p className="text-[15px] text-gray-500 leading-relaxed mb-6">
-            Es tu primer ingreso al sistema. Crea una contraseña para tu cuenta de alumno.
-          </p>
 
-          <form onSubmit={handleSubmit} noValidate>
+          {/* Marca */}
+          <header className="flex items-center gap-3.5">
+            <svg viewBox="0 0 96 96" className="w-[52px] h-[52px] flex-none" role="img" aria-label="Escudo de Control Escolar">
+              <circle cx="48" cy="48" r="47" fill="#1f2328" />
+              <circle cx="48" cy="48" r="42" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="1.5" />
+              <path d="M48 36 C41 31 32 30 25 32 V61 C32 59 41 60 48 65 Z" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+              <path d="M48 36 C55 31 64 30 71 32 V61 C64 59 55 60 48 65 Z" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+              <path d="M48 69 V73" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+              <circle cx="48" cy="22" r="2.5" fill="#fff" />
+            </svg>
+            <div>
+              <div className="text-lg font-bold tracking-tight leading-tight">Control Escolar</div>
+              <div className="text-[13px] text-gray-500 mt-0.5">Sistema de control académico</div>
+            </div>
+          </header>
+
+          <div className="mt-7 pt-7 border-t border-gray-200">
+            <h1 className="text-[28px] font-bold tracking-tight leading-tight">Crea tu contraseña</h1>
+            <p className="text-[14.5px] text-gray-500 leading-relaxed mt-1.5">
+              Es tu primer ingreso al sistema. Crea una contraseña para tu cuenta de alumno.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate className="mt-6">
             <div className="mb-5">
               <label htmlFor="matricula" className="block text-[13.5px] font-semibold mb-2">
                 Matrícula
@@ -104,7 +95,7 @@ function CrearPasswordForm() {
                   value={matricula}
                   onChange={(e) => setMatricula(e.target.value)}
                   placeholder="Ej. A21001234"
-                  className="w-full h-[50px] pl-11 pr-4 text-[15px] border-[1.5px] border-gray-300 rounded-lg outline-none transition focus:border-[#1f2328] focus:ring-4 focus:ring-gray-200"
+                  className="w-full h-[50px] pl-11 pr-4 text-[15px] border-[1.5px] border-gray-300 rounded-lg outline-none transition focus:border-[#1f2328] focus:ring-4 focus:ring-[#e9eaec]"
                 />
               </div>
             </div>
@@ -125,12 +116,12 @@ function CrearPasswordForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
-                  className="w-full h-[50px] pl-11 pr-12 text-[15px] border-[1.5px] border-gray-300 rounded-lg outline-none transition focus:border-[#1f2328] focus:ring-4 focus:ring-gray-200"
+                  className="w-full h-[50px] pl-11 pr-12 text-[15px] border-[1.5px] border-gray-300 rounded-lg outline-none transition focus:border-[#1f2328] focus:ring-4 focus:ring-[#e9eaec]"
                 />
                 <button
                   type="button"
                   onClick={() => setMostrarPassword((v) => !v)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 w-[38px] h-[38px] grid place-items-center text-gray-500 hover:text-[#1f2328] hover:bg-gray-100 rounded-lg cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 w-[38px] h-[38px] grid place-items-center text-gray-500 hover:text-[#1f2328] hover:bg-[#e9eaec] rounded-lg cursor-pointer"
                   aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {mostrarPassword ? (
@@ -148,10 +139,9 @@ function CrearPasswordForm() {
                 </button>
               </div>
 
-              {/* Medidor de fortaleza */}
               {password.length > 0 && (
                 <div className="mt-2.5">
-                  <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-300 ${fortaleza.color}`}
                       style={{ width: `${fortaleza.porcentaje}%` }}
@@ -168,7 +158,7 @@ function CrearPasswordForm() {
               <li className={/[0-9]/.test(password) ? 'text-green-600' : ''}>• Al menos un número</li>
             </ul>
 
-            <div className="mb-5">
+            <div className="mb-6">
               <label htmlFor="confirmPassword" className="block text-[13.5px] font-semibold mb-2">
                 Confirmar contraseña
               </label>
@@ -187,13 +177,13 @@ function CrearPasswordForm() {
                   className={`w-full h-[50px] pl-11 pr-12 text-[15px] border-[1.5px] rounded-lg outline-none transition focus:ring-4 ${
                     noCoinciden
                       ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
-                      : 'border-gray-300 focus:border-[#1f2328] focus:ring-gray-200'
+                      : 'border-gray-300 focus:border-[#1f2328] focus:ring-[#e9eaec]'
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setMostrarConfirm((v) => !v)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 w-[38px] h-[38px] grid place-items-center text-gray-500 hover:text-[#1f2328] hover:bg-gray-100 rounded-lg cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 w-[38px] h-[38px] grid place-items-center text-gray-500 hover:text-[#1f2328] hover:bg-[#e9eaec] rounded-lg cursor-pointer"
                   aria-label={mostrarConfirm ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {mostrarConfirm ? (
@@ -210,12 +200,8 @@ function CrearPasswordForm() {
                   )}
                 </button>
               </div>
-              {noCoinciden && (
-                <p className="mt-1.5 text-xs text-red-600">Las contraseñas no coinciden.</p>
-              )}
-              {coinciden && (
-                <p className="mt-1.5 text-xs text-green-600">Las contraseñas coinciden.</p>
-              )}
+              {noCoinciden && <p className="mt-1.5 text-xs text-red-600">Las contraseñas no coinciden.</p>}
+              {coinciden && <p className="mt-1.5 text-xs text-green-600">Las contraseñas coinciden.</p>}
             </div>
 
             {error && (
@@ -233,7 +219,7 @@ function CrearPasswordForm() {
             </button>
           </form>
 
-          <p className="mt-7 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
+          <p className="mt-6 pt-[22px] border-t border-gray-200 text-center text-sm text-gray-500">
             ¿Ya tienes contraseña?{' '}
             <a href="/login" className="font-semibold text-[#1f2328] hover:underline underline-offset-4">
               Inicia sesión
@@ -241,11 +227,54 @@ function CrearPasswordForm() {
           </p>
         </div>
       </section>
+
+      {/* ---------- Aside ilustrativo (oculto en móvil) ---------- */}
+      <aside className="hidden lg:grid relative place-items-center p-12 overflow-hidden">
+        <div className="absolute w-[360px] h-[360px] -left-[140px] top-[14%] rounded-full blur-[70px] bg-[#d5dee8]" aria-hidden="true" />
+        <div className="absolute w-[420px] h-[420px] -right-[100px] -bottom-[120px] rounded-full blur-[70px] bg-[#e9edf2]" aria-hidden="true" />
+
+        <div className="relative w-full max-w-[440px]">
+          <h2 className="text-[30px] font-bold tracking-tight leading-tight">Ya casi entras</h2>
+          <p className="text-[15px] text-gray-500 leading-relaxed mt-2.5 max-w-[340px]">
+            Crea tu contraseña una sola vez y accede cuando quieras a tus calificaciones.
+          </p>
+
+          <div className="relative h-[220px] mt-10" aria-hidden="true">
+            {/* Tarjeta de checklist de seguridad */}
+            <div className="absolute left-0 top-0 w-[260px] bg-white border border-gray-200 rounded-[14px] shadow-[0_1px_2px_rgba(20,22,26,0.04),0_14px_30px_rgba(20,22,26,0.07)] px-[18px] py-4">
+              <div className="text-[12.5px] font-semibold text-gray-500 mb-3">Tu contraseña</div>
+              {['Mínimo 8 caracteres', 'Una mayúscula', 'Un número'].map((texto) => (
+                <div key={texto} className="flex items-center gap-2.5 mb-2 text-[13px] font-medium text-gray-700">
+                  <span className="w-4 h-4 flex-none grid place-items-center bg-[#1f2328] rounded-full">
+                    <svg className="w-2.5 h-2.5 stroke-white" viewBox="0 0 12 12" fill="none" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m2.5 6.5 2.5 2.5 4.5-5.5" />
+                    </svg>
+                  </span>
+                  {texto}
+                </div>
+              ))}
+            </div>
+
+            {/* Tarjeta de candado / cuenta protegida */}
+            <div className="absolute right-0 bottom-0 w-[220px] bg-white border border-gray-200 rounded-[14px] shadow-[0_1px_2px_rgba(20,22,26,0.04),0_14px_30px_rgba(20,22,26,0.07)] px-4 py-3.5 flex items-center gap-3">
+              <div className="w-9 h-9 flex-none grid place-items-center bg-[#e9eaec] rounded-[10px]">
+                <svg className="w-[18px] h-[18px] stroke-[#1f2328]" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="10.5" width="16" height="10" rx="3" />
+                  <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
+                </svg>
+              </div>
+              <div>
+                <small className="block text-xs text-gray-500">Tu cuenta</small>
+                <strong className="text-sm font-semibold">Queda protegida</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
     </main>
   );
 }
 
-// useSearchParams necesita un boundary de Suspense en Next.js
 export default function CrearPasswordPage() {
   return (
     <Suspense fallback={null}>
