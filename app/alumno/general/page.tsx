@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Detalle from '@/components/Detalle';
+import PageHeader from '@/components/Pageheader';
 import { requireAlumno } from '@/lib/alumno/requireAlumno';
 import { getCiclos, getResumen } from '@/lib/alumno/queries';
 import { formatCalif } from '@/lib/alumno/types';
@@ -15,14 +16,11 @@ export default async function AlumnoGeneralPage() {
       : 0;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Resumen general</h1>
-        <p className="mt-1 text-sm text-gray-600">Tu avance acumulado en la carrera.</p>
-      </header>
+    <div>
+      <PageHeader titulo="Resumen general" descripcion="Tu avance acumulado en la carrera." />
 
       {resumen.totalMaterias === 0 ? (
-        <section className="rounded-xl border border-gray-200 bg-white p-6">
+        <section className="rounded-xl border border-[#dcdfe3] bg-white p-6">
           <p className="text-sm text-gray-600">
             Aún no tienes materias registradas, por eso no hay resumen que mostrar.
           </p>
@@ -31,7 +29,7 @@ export default async function AlumnoGeneralPage() {
         <>
           {/* Las dos cifras que importan */}
           <section className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <div className="rounded-xl border border-[#dcdfe3] bg-white p-6">
               <p className="text-sm text-gray-500">Promedio general</p>
               <p className="mt-1 text-4xl font-bold text-gray-900">
                 {formatCalif(resumen.promedioGeneral)}
@@ -43,7 +41,7 @@ export default async function AlumnoGeneralPage() {
               )}
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <div className="rounded-xl border border-[#dcdfe3] bg-white p-6">
               <p className="text-sm text-gray-500">Créditos aprobados</p>
               <p className="mt-1 text-4xl font-bold text-gray-900">{resumen.creditosAprobados}</p>
               <div
@@ -65,7 +63,7 @@ export default async function AlumnoGeneralPage() {
           {/* Ciclos: cada fila lleva a su detalle en el historial */}
           <section className="mt-8">
             <h2 className="mb-3 text-base font-semibold text-gray-900">Tus ciclos</h2>
-            <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+            <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-[#dcdfe3] bg-white">
               {ciclos.map((c) => (
                 <li key={c.cicloId}>
                   <Link
