@@ -1,34 +1,72 @@
 import Link from 'next/link';
+import Detalle, { ListaDatos } from '@/components/Detalle';
 import EstadoBadge from '@/components/EstadoBadge';
 import { requireAlumno } from '@/lib/alumno/requireAlumno';
-import { getMateriasActuales, getParametros, getPerfil } from '@/lib/alumno/queries';
-import { formatCalif, type MateriaActual } from '@/lib/alumno/types';
+import { getMateriasActuales, getParametros } from '@/lib/alumno/queries';
+import {
+  etiquetaOportunidad,
+  formatCalif,
+  type Estado,
+  type MateriaActual,
+} from '@/lib/alumno/types';
+
+// Menor número = más urgente. Define el orden de las tarjetas.
+const PRIORIDAD: Record<Estado, number> = {
+  Reprobado: 0,
+  'Pendiente de extraordinario': 1,
+  'Pendiente siguiente extraordinario': 1,
+  'En extraordinario': 1,
+  'En curso': 2,
+  Aprobado: 3,
+};
+
+function prioridad(m: MateriaActual): number {
+  return PRIORIDAD[m.estado] ?? 4;
+}
+
+function resumenTexto(materias: MateriaActual[]): string {
+  const cuenta = (estado: Estado) => materias.filter((m) => m.estado === estado).length;
+  const aprobadas = cuenta('Aprobado');
+  const reprobadas = cuenta('Reprobado');
+  const enCurso = cuenta('En curso');
+  const pendientes = materias.length - aprobadas - reprobadas - enCurso;
+
+  const partes: string[] = [];
+  if (aprobadas) partes.push(`${aprobadas} ${aprobadas === 1 ? 'aprobada' : 'aprobadas'}`);
+  if (enCurso) partes.push(`${enCurso} en curso`);
+  if (pendientes)
+    partes.push(`${pendientes} ${pendientes === 1 ? 'pendiente' : 'pendientes'} de extraordinario`);
+  if (reprobadas) partes.push(`${reprobadas} ${reprobadas === 1 ? 'reprobada' : 'reprobadas'}`);
+
+  return `${materias.length} ${materias.length === 1 ? 'materia' : 'materias'}: ${partes.join(', ')}`;
+}
 
 export default async function AlumnoActualPage() {
   await requireAlumno();
 
-  const [perfil, parametros, materias] = await Promise.all([
-    getPerfil(),
-    getParametros(),
-    getMateriasActuales(),
-  ]);
+  const [parametros, materias] = await Promise.all([getParametros(), getMateriasActuales()]);
 
-  // Agrupar por ciclo 
+  // Agrupa por ciclo (normalmente solo hay uno activo) y ordena cada grupo
+  // por prioridad; el orden alfabético original se conserva dentro de cada nivel.
   const porCiclo = new Map<string, MateriaActual[]>();
   for (const m of materias) {
     const lista = porCiclo.get(m.nombreCiclo) ?? [];
     lista.push(m);
     porCiclo.set(m.nombreCiclo, lista);
   }
+  for (const lista of porCiclo.values()) {
+    lista.sort((a, b) => prioridad(a) - prioridad(b));
+  }
+
+  const requierenAtencion = materias.filter((m) => prioridad(m) <= 1);
+  const hayReprobada = requierenAtencion.some((m) => m.estado === 'Reprobado');
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Ciclo actual</h1>
-        {perfil && (
-          <p className="mt-1 text-sm text-gray-500">
-            Tu informacion correspondiente al ciclo actual.
-          </p>
+        {materias.length > 0 && (
+          <p className="mt-1 text-sm text-gray-600">{resumenTexto(materias)}</p>
         )}
       </header>
 
@@ -45,21 +83,48 @@ export default async function AlumnoActualPage() {
           </p>
         </section>
       ) : (
-        Array.from(porCiclo.entries()).map(([nombreCiclo, lista]) => (
-          <section key={nombreCiclo} className="mb-8">
-            <h2 className="mb-3 text-base font-semibold text-gray-900">Ciclo {nombreCiclo}</h2>
-            <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-              {lista.map((m) => (
-                <MateriaCard
-                  key={m.inscripcionId}
-                  materia={m}
-                  numParciales={parametros.numParciales}
-                  calificacionMinima={parametros.calificacionMinima}
-                />
-              ))}
-            </div>
-          </section>
-        ))
+        <>
+          {requierenAtencion.length > 0 && (
+            <section
+              className={`mb-6 rounded-xl border p-4 ${
+                hayReprobada ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50'
+              }`}
+            >
+              <h2
+                className={`text-sm font-semibold ${
+                  hayReprobada ? 'text-red-800' : 'text-amber-900'
+                }`}
+              >
+                Requiere tu atención
+              </h2>
+              <ul className="mt-1 space-y-0.5 text-sm text-gray-800">
+                {requierenAtencion.map((m) => (
+                  <li key={m.inscripcionId}>
+                    {m.nombre}: {m.estado.toLowerCase()}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {Array.from(porCiclo.entries()).map(([nombreCiclo, lista]) => (
+            <section key={nombreCiclo} className="mb-8">
+              {porCiclo.size > 1 && (
+                <h2 className="mb-3 text-base font-semibold text-gray-900">Ciclo {nombreCiclo}</h2>
+              )}
+              <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+                {lista.map((m) => (
+                  <MateriaCard
+                    key={m.inscripcionId}
+                    materia={m}
+                    numParciales={parametros.numParciales}
+                    calificacionMinima={parametros.calificacionMinima}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </>
       )}
     </div>
   );
@@ -74,69 +139,86 @@ function MateriaCard({
   numParciales: number;
   calificacionMinima: number;
 }) {
+  // El número grande es la calificación final si ya es definitiva;
+  // si no, el promedio de los parciales capturados hasta ahora.
+  const definitiva = m.calificacionFinal !== null;
+  const valor = definitiva ? m.calificacionFinal : m.promedio;
+  const etiquetaValor = definitiva
+    ? 'Calificación final'
+    : valor === null
+      ? 'Sin parciales aún'
+      : 'Promedio parcial';
+
+  const datos = [
+    { etiqueta: 'Clave', valor: m.clave },
+    ...(m.creditos !== null ? [{ etiqueta: 'Créditos', valor: String(m.creditos) }] : []),
+    { etiqueta: 'Grupo', valor: m.nombreGrupo },
+    {
+      etiqueta: 'Parciales capturados',
+      valor: `${m.parcialesCapturados} de ${numParciales}`,
+    },
+    { etiqueta: 'Oportunidad actual', valor: m.nombreOportunidad },
+  ];
+
   return (
     <article className="flex flex-col rounded-xl border border-gray-200 bg-white p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 space-y-2">
           <h3 className="font-semibold text-gray-900">{m.nombre}</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
-            {m.clave}
-            {m.creditos !== null && `, ${m.creditos} créditos`}
-          </p>
-          <p className="text-xs text-gray-500">Grupo {m.nombreGrupo}</p>
+          <EstadoBadge estado={m.estado} />
         </div>
-        <EstadoBadge estado={m.estado} />
+        <div className="shrink-0 text-right">
+          <p
+            className={`text-3xl font-bold ${
+              valor !== null && valor < calificacionMinima ? 'text-red-600' : 'text-gray-900'
+            }`}
+          >
+            {formatCalif(valor)}
+          </p>
+          <p className="text-xs text-gray-500">{etiquetaValor}</p>
+        </div>
       </div>
 
-      {/* Parciales: los no capturados se muestran como pendientes, no como 0 */}
-      <ul
-        className="mt-4 grid gap-2"
-        style={{ gridTemplateColumns: `repeat(${numParciales}, minmax(0, 1fr))` }}
-      >
+      {/* Parciales en una fila compacta; los no capturados son "pendiente", no 0 */}
+      <ul className="mt-4 flex flex-wrap gap-2">
         {m.parciales.map((cal, i) => (
           <li
             key={i}
-            className={`rounded-lg border px-2 py-3 text-center ${
-              cal === null ? 'border-dashed border-gray-300 bg-gray-50' : 'border-gray-200 bg-white'
+            aria-label={`Parcial ${i + 1}`}
+            className={`rounded-md border px-2.5 py-1 text-sm ${
+              cal === null
+                ? 'border-dashed border-gray-300 text-gray-400'
+                : 'border-gray-200 text-gray-900'
             }`}
           >
-            <p className="text-xs text-gray-500">Parcial {i + 1}</p>
+            <span className="text-gray-500">P{i + 1}</span>{' '}
             {cal === null ? (
-              <p className="mt-1 text-sm text-gray-400">Pendiente</p>
+              'pendiente'
             ) : (
-              <p
-                className={`mt-1 text-lg font-semibold ${
-                  cal < calificacionMinima ? 'text-red-600' : 'text-gray-900'
-                }`}
+              <span
+                className={`font-semibold ${cal < calificacionMinima ? 'text-red-600' : ''}`}
               >
                 {formatCalif(cal)}
-              </p>
+              </span>
             )}
           </li>
         ))}
       </ul>
 
-      <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-gray-100 pt-4">
-        <div>
-          <dt className="text-xs text-gray-500">Promedio parcial</dt>
-          <dd className="text-base font-semibold text-gray-900">{formatCalif(m.promedio)}</dd>
-          <dd className="text-xs text-gray-500">
-            {m.parcialesCapturados} de {numParciales} parciales capturados
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-gray-500">Oportunidad actual</dt>
-          <dd className="text-base font-semibold text-gray-900">{m.nombreOportunidad}</dd>
-        </div>
-        {m.calificacionFinal !== null && (
-          <div className="col-span-2">
-            <dt className="text-xs text-gray-500">Calificación final</dt>
-            <dd className="text-base font-semibold text-gray-900">
-              {formatCalif(m.calificacionFinal)}
-            </dd>
-          </div>
-        )}
-      </dl>
+      {/* La oportunidad solo se destaca cuando ya no es el ordinario */}
+      {m.oportunidadActual > 1 && (
+        <p className="mt-3 text-xs text-gray-600">
+          {m.estado === 'Aprobado'
+            ? `Aprobada en ${etiquetaOportunidad(m.oportunidadActual)}`
+            : `Oportunidad actual: ${etiquetaOportunidad(m.oportunidadActual)}`}
+        </p>
+      )}
+
+      <div className="mt-4 border-t border-gray-100 pt-3">
+        <Detalle>
+          <ListaDatos datos={datos} />
+        </Detalle>
+      </div>
     </article>
   );
 }
