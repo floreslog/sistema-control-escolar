@@ -229,7 +229,7 @@ function CrearPasswordForm() {
       </section>
 
       {/* ---------- Aside ilustrativo (oculto en móvil) ---------- */}
-      <aside className="hidden lg:grid relative place-items-center p-12 overflow-hidden">
+      <aside className="hidden lg:grid relative place-items-center p-12">
         <div className="absolute w-[360px] h-[360px] -left-[140px] top-[14%] rounded-full blur-[70px] bg-[#d5dee8]" aria-hidden="true" />
         <div className="absolute w-[420px] h-[420px] -right-[100px] -bottom-[120px] rounded-full blur-[70px] bg-[#e9edf2]" aria-hidden="true" />
 
