@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Detalle from '@/components/Detalle';
-import PageHeader from '@/components/Pageheader';
+import PageHeader from '@/components/PageHeader';
 import { requireAlumno } from '@/lib/alumno/requireAlumno';
 import { getCiclos, getResumen } from '@/lib/alumno/queries';
 import { formatCalif } from '@/lib/alumno/types';

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Detalle, { ListaDatos } from '@/components/Detalle';
 import EstadoBadge from '@/components/EstadoBadge';
-import PageHeader from '@/components/Pageheader';
+import PageHeader from '@/components/PageHeader';
 import { requireAlumno } from '@/lib/alumno/requireAlumno';
 import { getMateriasActuales, getParametros } from '@/lib/alumno/queries';
 import {

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { z } from 'zod';
 import Detalle, { ListaDatos } from '@/components/Detalle';
 import EstadoBadge from '@/components/EstadoBadge';
-import PageHeader from '@/components/Pageheader';
+import PageHeader from '@/components/PageHeader';
 import { requireAlumno } from '@/lib/alumno/requireAlumno';
 import { getCiclos, getMateriasDeCiclo, getParametros } from '@/lib/alumno/queries';
 import {
