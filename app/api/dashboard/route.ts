@@ -1,3 +1,4 @@
+// app/api/dashboard/route.ts
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getSession } from "@/lib/auth";
@@ -24,17 +25,17 @@ export async function GET() {
   try {
     const kpisResult = await pool.query(
       `SELECT 
-         COUNT(DISTINCT GrupoID) AS total_grupos,
-         COUNT(DISTINCT AlumnoID) AS total_alumnos,
-         ROUND(AVG(Promedio), 2) AS promedio_general,
-         ROUND(100.0 * SUM(CASE WHEN Estado = 'Aprobado' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) AS porcentaje_aprobacion
+         COUNT(DISTINCT GrupoID)::int AS total_grupos,
+         COUNT(DISTINCT AlumnoID)::int AS total_alumnos,
+         ROUND(COALESCE(AVG(Promedio), 0), 2)::float8 AS promedio_general,
+         ROUND(100.0 * SUM(CASE WHEN Estado = 'Aprobado' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1)::float8 AS porcentaje_aprobacion
        FROM vw_ResultadoAsignatura
        WHERE DocenteID = $1`,
       [docenteId]
     );
 
     const estadosResult = await pool.query(
-      `SELECT Estado AS estado, COUNT(*) AS total
+      `SELECT Estado AS estado, COUNT(*)::int AS total
        FROM vw_ResultadoAsignatura
        WHERE DocenteID = $1
        GROUP BY Estado`,
@@ -43,9 +44,9 @@ export async function GET() {
 
     const materiasResult = await pool.query(
       `SELECT s.NombreAsignatura AS materia,
-              COUNT(*) AS total_inscritos,
-              SUM(CASE WHEN r.Estado = 'Reprobado' THEN 1 ELSE 0 END) AS reprobados,
-              ROUND(100.0 * SUM(CASE WHEN r.Estado = 'Reprobado' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) AS pct_reprobacion
+              COUNT(*)::int AS total_inscritos,
+              SUM(CASE WHEN r.Estado = 'Reprobado' THEN 1 ELSE 0 END)::int AS reprobados,
+              ROUND(100.0 * SUM(CASE WHEN r.Estado = 'Reprobado' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1)::float8 AS pct_reprobacion
        FROM vw_ResultadoAsignatura r
        JOIN Asignatura s ON s.AsignaturaID = r.AsignaturaID
        WHERE r.DocenteID = $1
