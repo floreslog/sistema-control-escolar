@@ -1,4 +1,3 @@
-// app/docente/grupos/[grupoId]/alumnos/page.tsx
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
