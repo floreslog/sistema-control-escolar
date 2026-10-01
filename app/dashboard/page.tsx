@@ -101,7 +101,7 @@ export default function DashboardPage() {
 
         {/* Gráfica de barras: reprobación por materia */}
         <div>
-          <h2 className="font-semibold mb-2">% Reprobación por materia</h2>
+          <h2 className="font-semibold mb-2">% No aprobacion por materia</h2>
           {data.materias.length === 0 ? (
             <p className="text-sm text-gray-500">Sin datos todavía.</p>
           ) : (
@@ -110,7 +110,7 @@ export default function DashboardPage() {
                 <XAxis dataKey="materia" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="pct_reprobacion" fill="#ef4444" />
+                <Bar dataKey="pct_no_aprobacion" fill="#ef4444" />
               </BarChart>
             </ResponsiveContainer>
           )}

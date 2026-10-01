@@ -42,18 +42,18 @@ export async function GET() {
       [docenteId]
     );
 
-    const materiasResult = await pool.query(
-      `SELECT s.NombreAsignatura AS materia,
-              COUNT(*)::int AS total_inscritos,
-              SUM(CASE WHEN r.Estado = 'Reprobado' THEN 1 ELSE 0 END)::int AS reprobados,
-              ROUND(100.0 * SUM(CASE WHEN r.Estado = 'Reprobado' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1)::float8 AS pct_reprobacion
-       FROM vw_ResultadoAsignatura r
-       JOIN Asignatura s ON s.AsignaturaID = r.AsignaturaID
-       WHERE r.DocenteID = $1
-       GROUP BY s.NombreAsignatura
-       ORDER BY pct_reprobacion DESC`,
-      [docenteId]
-    );
+const materiasResult = await pool.query(
+  `SELECT s.NombreAsignatura AS materia,
+          COUNT(*)::int AS total_inscritos,
+          SUM(CASE WHEN r.Estado != 'Aprobado' THEN 1 ELSE 0 END)::int AS no_aprobados,
+          ROUND(100.0 * SUM(CASE WHEN r.Estado != 'Aprobado' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1)::float8 AS pct_no_aprobacion
+   FROM vw_ResultadoAsignatura r
+   JOIN Asignatura s ON s.AsignaturaID = r.AsignaturaID
+   WHERE r.DocenteID = $1
+   GROUP BY s.NombreAsignatura
+   ORDER BY pct_no_aprobacion DESC`,
+  [docenteId]
+);
 
     return NextResponse.json({
       success: true,
