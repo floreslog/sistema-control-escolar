@@ -159,11 +159,10 @@ export default async function DocenteAlumnosPage({
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                      <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {!a.activo && <span className={CHIP}>Inactivo</span>}
-                        {a.sinContrasena && <span className={CHIP}>Sin contraseña</span>}
-                        {a.activo && !a.sinContrasena && <span className="text-gray-400">—</span>}
+                        <AccesoBadge sinContrasena={a.sinContrasena} />
                       </div>
                     </td>
                   </tr>
