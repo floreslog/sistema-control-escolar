@@ -10,7 +10,7 @@ import {
 } from '@/app/docente/extraordinarios/actions';
 
 import type { MateriaRef } from '@/lib/docente/extraordinarios/types';
-import CapturaExtraForm from './CapturaExtraForm';
+import CapturaExtraForm from './CapturarExtraForm';
 import EnviarForm from './EnviarForm';
 
 function TituloMateria({ materia }: { materia: MateriaRef }) {
