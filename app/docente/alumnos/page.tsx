@@ -12,6 +12,22 @@ function uno(v: string | string[] | undefined): string {
   return typeof v === 'string' ? v : '';
 }
 
+// Badge de acceso: mismo estilo que EstadoBadge (semáforo verde / rojo)
+function AccesoBadge({ sinContrasena }: { sinContrasena: boolean }) {
+  const estilo = sinContrasena
+    ? { caja: 'bg-red-50 text-red-700 border-red-200', punto: 'bg-red-600' }
+    : { caja: 'bg-green-50 text-green-700 border-green-200', punto: 'bg-green-600' };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-semibold ${estilo.caja}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${estilo.punto}`} aria-hidden="true" />
+      {sinContrasena ? 'Sin contraseña' : 'Contraseña establecida'}
+    </span>
+  );
+}
+
 export default async function DocenteAlumnosPage({
   searchParams,
 }: {
