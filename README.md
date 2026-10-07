@@ -3,7 +3,7 @@
 # Sistema de Control Escolar
 
 **Plataforma web para gestionar grupos, inscripciones y calificaciones.**
-Los docentes capturan; los alumnos consultan. Sin ORM, con SQL puro y autenticación propia.
+Los docentes capturan; los alumnos consultan. Con SQL puro, hashes y autenticación propia.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.3-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)
@@ -12,30 +12,9 @@ Los docentes capturan; los alumnos consultan. Sin ORM, con SQL puro y autenticac
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
 ![Licencia MIT](https://img.shields.io/badge/Licencia-MIT-green?style=flat-square)
-![Estado](https://img.shields.io/badge/Estado-En_desarrollo-orange?style=flat-square)
-![Proyecto](https://img.shields.io/badge/Proyecto-Acad%C3%A9mico-blue?style=flat-square)
-![Código abierto](https://img.shields.io/badge/C%C3%B3digo-Abierto-brightgreen?style=flat-square)
-![PRs](https://img.shields.io/badge/PRs-bienvenidos-ff69b4?style=flat-square)
+![Estado](https://img.shields.io/badge/Estado-Estable-green?style=flat-square)
 
 </div>
-
----
-
-## Tabla de contenido
-
-- [Descripción](#descripción)
-- [Características](#características)
-- [Capturas de pantalla](#capturas-de-pantalla)
-- [Stack tecnológico](#stack-tecnológico)
-- [Arquitectura](#arquitectura)
-- [Modelo de datos](#modelo-de-datos)
-- [Reglas de negocio](#reglas-de-negocio)
-- [Seguridad](#seguridad)
-- [Instalación](#instalación)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Roadmap](#roadmap)
-- [Contribuir](#contribuir)
-- [Licencia](#licencia)
 
 ---
 
@@ -43,7 +22,7 @@ Los docentes capturan; los alumnos consultan. Sin ORM, con SQL puro y autenticac
 
 Sistema web de **control escolar** donde los **docentes** crean grupos, inscriben alumnos a materias y capturan calificaciones parciales y extraordinarias, mientras que los **alumnos** consultan su avance, promedios y kardex en tiempo real.
 
-Es un monolito construido con **Next.js (App Router)** y **PostgreSQL**, con consultas en **SQL crudo** (driver `pg`) a propósito, para mantener control total sobre el acceso a datos.
+Es un monolito construido con **Next.js** y **PostgreSQL**, con consultas en **SQL crudo** (driver `pg`), para tener control total de las consultas SQL.
 
 ---
 
@@ -68,11 +47,6 @@ Es un monolito construido con **Next.js (App Router)** y **PostgreSQL**, con con
 - Recuperación de contraseña mediante pregunta de seguridad.
 - **Rate limiting** por IP y bloqueo temporal de cuenta tras intentos fallidos.
 - Indicador de fortaleza de contraseña.
-
-### Interfaz
-- Diseño consistente entre paneles, con semáforo verde/ámbar/rojo para los estados.
-- Gráficos de barras hechos con Tailwind en *server components* (sin librerías de gráficos).
-- Tipografía **Manrope**.
 
 ---
 
@@ -126,15 +100,14 @@ AQUI VA CAPTURA DE KARDEX DEL ALUMNO
 
 | Capa | Tecnología | Versión |
 |------|------------|---------|
-| Framework | [Next.js](https://nextjs.org/) (App Router, monolito, sin carpeta `src/`) | 16.3.6 |
-| UI | [React](https://react.dev/) (`useActionState`, Server Actions) | 19.2.8 |
+| Framework | [Next.js](https://nextjs.org/) (App Router, monolito) | 16.3.6 |
+| UI | [React](https://react.dev/) | 19.2.8 |
 | Lenguaje | [TypeScript](https://www.typescriptlang.org/) | 5 |
 | Base de datos | [PostgreSQL](https://www.postgresql.org/) con [`pg`](https://node-postgres.com/) (SQL crudo, sin ORM) | 12+ / pg 8.23 |
 | Estilos | [Tailwind CSS](https://tailwindcss.com/) | 4 |
 | Sesiones (JWT) | [`jose`](https://github.com/panva/jose) | 6.2 |
 | Hash de contraseñas | [`bcryptjs`](https://github.com/dcodeIO/bcrypt.js) | 3.0 |
 | Validación | [Zod](https://zod.dev/) | 4.6 |
-| Calidad de código | ESLint con `eslint-config-next` | 9 |
 
 ---
 
@@ -157,31 +130,6 @@ Cliente  ->  Middleware (rol)  ->  Server Component / Server Action
 - **Doble barrera de rol:** el `middleware.ts` protege `/docente/*` y `/alumno/*`; además cada página y Server Action vuelve a verificar la sesión.
 - **Consultas siempre parametrizadas** (`$1`, `$2`...). Nunca se concatenan valores del usuario.
 - El `DocenteID` **siempre** sale de la sesión, nunca del cliente. La propiedad se comprueba dentro de la propia query y un id ajeno responde `404`, sin revelar si existe.
-
----
-
-## Modelo de datos
-
-| Tabla | Propósito |
-|-------|-----------|
-| `Parametro` | Reglas configurables (calificación mínima, número de parciales). Una sola fila |
-| `CicloEscolar` | Ciclos escolares (activo/inactivo) |
-| `Oportunidad` | Ordinario, Primera y Segunda Extraordinaria |
-| `Docente` / `Alumno` | Usuarios, con hash de contraseña, bloqueo e información de recuperación |
-| `Asignatura` | Catálogo de materias |
-| `Grupo` | Grupo registrado por un docente (titular) |
-| `Grupo_Asignatura` | Materia dentro de un grupo y el docente que la imparte |
-| `Grupo_Alumno` | Alumnos que pertenecen a un grupo |
-| `Inscripcion` | Alumno inscrito en una materia de un grupo |
-| `CalificacionParcial` | Parciales del ordinario |
-| `Extraordinario` | Oportunidades extraordinarias |
-
-**Vistas:** `vw_ResultadoAsignatura` (promedio, oportunidad actual, calificación final y estado) y `vw_Kardex`.
-
-**Estados posibles:** `Aprobado` · `Reprobado` · `En curso` · `Pendiente de extraordinario` · `En extraordinario` · `Pendiente siguiente extraordinario`.
-
-> El esquema completo está en [`estructura_completa_postgresql.sql`](./estructura_completa_postgresql.sql).
-> PostgreSQL guarda los nombres sin comillas en minúsculas y las columnas `NUMERIC` regresan como `string`, por lo que en el código se usan alias y `Number()`.
 
 ---
 
@@ -299,27 +247,8 @@ El script SQL incluye un docente y un alumno de prueba para desarrollo. **Elimí
 
 ---
 
-## Roadmap
-
-- [ ] Exigir la respuesta de seguridad al crear contraseña tras un restablecimiento
-- [ ] Invalidar sesiones JWT al restablecer la contraseña
-- [ ] Aplicar `rateLimit` al flujo de restablecimiento de contraseñas
-- [ ] Auditoría persistente de acciones sensibles
-- [ ] Búsqueda insensible a acentos (extensión `unaccent`)
-- [ ] Captura masiva de calificaciones por Excel/CSV
-- [ ] Exportación de kardex y listas
-- [ ] Consulta de extraordinarios de ciclos cerrados
-
----
-
 ## Licencia
 
 Distribuido bajo la licencia **MIT**. Consulta el archivo [`LICENSE`](./LICENSE) para más información.
 
 ---
-
-<div align="center">
-
-Proyecto académico de código abierto
-
-</div>
