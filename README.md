@@ -175,10 +175,10 @@ cd <tu-repositorio>
 npm install
 
 # 3. Crear la base de datos
-psql -U postgres -c "CREATE DATABASE controlcalificaciones;"
+psql -U postgres -c "CREATE DATABASE sistemacalificaciones;"
 
-# 4. Cargar el esquema
-psql -U postgres -d controlcalificaciones -f estructura_completa_postgresql.sql
+# 4. Cargar el esquema y los datos de prueba
+psql -U postgres -d sistemacalificaciones -f estructura_completa_postgresql.sql
 
 # 5. Configurar variables de entorno (ver abajo)
 
@@ -202,15 +202,24 @@ Abre [http://localhost:3000](http://localhost:3000).
 Crea un archivo `.env.local` en la raíz:
 
 ```env
-DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/controlcalificaciones
+DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/sistemacalificaciones
 JWT_SECRET=una-cadena-larga-aleatoria-y-secreta
 ```
 
 > Genera un secreto robusto, por ejemplo con `openssl rand -base64 48`.
 
-### Datos de ejemplo
+### Datos y credenciales de prueba
 
-El script SQL incluye un docente y un alumno de prueba para desarrollo. **Elimínalos o cambia sus credenciales antes de cualquier despliegue.**
+El script SQL crea, además del esquema, datos de ejemplo (ciclos, asignaturas, grupos, alumnos, calificaciones y extraordinarios) y dos usuarios con credenciales por defecto para entrar al sistema:
+
+| Rol | Usuario | Contraseña |
+|-----|---------|------------|
+| Docente | `EMP-0001` | `docente123` |
+| Alumno | `22022096` | `alumno123` |
+
+Los demás alumnos de prueba no tienen contraseña; deben crearla en su primer acceso.
+
+> Estas credenciales son solo para desarrollo. **Elimínalas o cámbialas antes de cualquier despliegue.**
 
 ---
 
