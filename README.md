@@ -52,47 +52,33 @@ Es un monolito construido con **Next.js** y **PostgreSQL**, con consultas en **S
 
 ## Capturas de pantalla
 
-> Guarda las imágenes en `docs/capturas/` y reemplaza cada marcador por `![Descripción](docs/capturas/nombre.png)`.
-
 ### Inicio de sesión
 
-AQUI VA CAPTURA DE LOGIN
+![Inicio de sesión](docs/capturas/login.png)
 
 ### Recuperación de contraseña
 
-AQUI VA CAPTURA DE RECUPERACION DE CONTRASEÑA
-
-### Panel del docente: inicio
-
-AQUI VA CAPTURA DE INICIO DEL DOCENTE (KPIs, alertas y barra de estados)
+![Recuperación de contraseña](docs/capturas/recuperar-contrasena.png)
 
 ### Panel del docente: mis grupos
 
-AQUI VA CAPTURA DE LISTA DE GRUPOS Y DETALLE DE UN GRUPO
+![Mis grupos](docs/capturas/mis-grupos.png)
 
 ### Panel del docente: agregar alumnos al grupo
 
-AQUI VA CAPTURA DE BUSQUEDA Y AGREGADO DE ALUMNOS
+![Agregar alumnos al grupo](docs/capturas/agregar-alumnos.png)
 
 ### Panel del docente: captura de calificaciones
 
-AQUI VA CAPTURA DE LA TABLA DE CAPTURA DE CALIFICACIONES
+![Captura de calificaciones](docs/capturas/capturar-calificaciones.png)
 
 ### Panel del docente: extraordinarios
 
-AQUI VA CAPTURA DE EXTRAORDINARIOS
+![Extraordinarios](docs/capturas/extraordinarios.png)
 
-### Panel del docente: kardex de un alumno
+### Panel del alumno: historial
 
-AQUI VA CAPTURA DE KARDEX VISTO POR EL DOCENTE
-
-### Panel del alumno: inicio
-
-AQUI VA CAPTURA DE INICIO DEL ALUMNO
-
-### Panel del alumno: kardex
-
-AQUI VA CAPTURA DE KARDEX DEL ALUMNO
+![Historial del alumno](docs/capturas/alumno-historial.png)
 
 ---
 
