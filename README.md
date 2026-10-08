@@ -24,6 +24,14 @@ Sistema web de **control escolar** donde los **docentes** crean grupos, inscribe
 
 Es un monolito construido con **Next.js** y **PostgreSQL**, con consultas en **SQL crudo** (driver `pg`), para tener control total de las consultas SQL.
 
+**Por qué Next.js**
+
+- **Un solo proyecto para frontend y backend.** Las páginas, la lógica del servidor y la protección de rutas conviven en el mismo repositorio y se despliegan juntas, sin mantener una API separada.
+- **Server Components.** Las páginas leen de la base de datos directamente en el servidor, así que el navegador recibe HTML ya renderizado y no se expone lógica de acceso a datos.
+- **Server Actions.** Las escrituras (crear grupos, capturar calificaciones) se hacen con formularios que llaman funciones del servidor, sin construir y consumir endpoints REST a mano.
+- **Middleware.** Permite proteger por rol las rutas `/docente/*` y `/alumno/*` antes de que se procese la petición.
+- **TypeScript de extremo a extremo.** Los tipos se comparten entre la capa de datos, el servidor y la interfaz.
+
 ---
 
 ## Características
