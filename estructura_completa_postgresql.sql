@@ -1,15 +1,16 @@
 /* ============================================================
    Sistema de Control de Calificaciones - PostgreSQL 12+
+   Escala de calificaciones: 0 a 100  |  Minima aprobatoria: 70
 
    Uso:
      CREATE DATABASE sistemacalificaciones;
      \c sistemacalificaciones
-     \i sistema_calificaciones.sql
+     \i estructura_completa_postgresql.sql
 
    Credenciales de prueba:
      Docente: EMP-0001  /  docente123
      Alumno:  22022096  /  alumno123
-   (los demás alumnos no tienen contraseña; deben crearla al entrar)
+   (los demas alumnos no tienen contrasena)
    ============================================================ */
 
 BEGIN;
@@ -18,10 +19,11 @@ BEGIN;
 
 CREATE TABLE Parametro (
     ParametroID         INT NOT NULL PRIMARY KEY DEFAULT 1,
-    CalificacionMinima  NUMERIC(4,2) NOT NULL DEFAULT 6.00,
+    CalificacionMinima  NUMERIC(5,2) NOT NULL DEFAULT 70.00,
     NumParciales        SMALLINT     NOT NULL DEFAULT 3,
     CONSTRAINT CK_Parametro_UnaFila CHECK (ParametroID = 1),
-    CONSTRAINT CK_Parametro_NumParciales CHECK (NumParciales >= 1)
+    CONSTRAINT CK_Parametro_NumParciales CHECK (NumParciales >= 1),
+    CONSTRAINT CK_Parametro_CalifMinima CHECK (CalificacionMinima BETWEEN 0 AND 100)
 );
 
 INSERT INTO Parametro (ParametroID) VALUES (1);
@@ -137,25 +139,25 @@ CREATE TABLE CalificacionParcial (
     CalificacionParcialID INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     InscripcionID         INT NOT NULL,
     NumeroParcial         SMALLINT NOT NULL,
-    Calificacion          NUMERIC(4,2) NULL,
+    Calificacion          NUMERIC(5,2) NULL,
     FechaRegistro         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT FK_CP_Insc FOREIGN KEY (InscripcionID) REFERENCES Inscripcion(InscripcionID),
     CONSTRAINT UQ_CP UNIQUE (InscripcionID, NumeroParcial),
     CONSTRAINT CK_CP_Numero CHECK (NumeroParcial >= 1),
-    CONSTRAINT CK_CP_Calif  CHECK (Calificacion IS NULL OR Calificacion BETWEEN 0 AND 10)
+    CONSTRAINT CK_CP_Calif  CHECK (Calificacion IS NULL OR Calificacion BETWEEN 0 AND 100)
 );
 
 CREATE TABLE Extraordinario (
     ExtraordinarioID  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     InscripcionID     INT NOT NULL,
     OportunidadID     INT NOT NULL,
-    Calificacion      NUMERIC(4,2) NULL,
+    Calificacion      NUMERIC(5,2) NULL,
     FechaExamen       DATE NULL,
     FechaRegistro     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT FK_Ext_Insc FOREIGN KEY (InscripcionID) REFERENCES Inscripcion(InscripcionID),
     CONSTRAINT FK_Ext_Opor FOREIGN KEY (OportunidadID) REFERENCES Oportunidad(OportunidadID),
     CONSTRAINT UQ_Ext UNIQUE (InscripcionID, OportunidadID),
-    CONSTRAINT CK_Ext_Calif CHECK (Calificacion IS NULL OR Calificacion BETWEEN 0 AND 10)
+    CONSTRAINT CK_Ext_Calif CHECK (Calificacion IS NULL OR Calificacion BETWEEN 0 AND 100)
 );
 
 CREATE INDEX IX_Grupo_Docente      ON Grupo(DocenteID);
@@ -185,7 +187,7 @@ WITH base AS (
     CROSS JOIN Parametro prm
     LEFT JOIN LATERAL (
         SELECT COUNT(*) AS Capturados,
-               CAST(AVG(cp.Calificacion) AS NUMERIC(4,2)) AS Promedio
+               CAST(AVG(cp.Calificacion) AS NUMERIC(5,2)) AS Promedio
         FROM CalificacionParcial cp
         WHERE cp.InscripcionID = i.InscripcionID
           AND cp.Calificacion IS NOT NULL
@@ -286,7 +288,23 @@ VALUES (
     '$2b$10$EBp81c77J.iO4JerI9pSW.PlRY0gKrzQhl6lJEnWhmasUdU6tt9Ha'
 );
 
-/* ---------- DATOS DE PRUEBA ---------- */
+/* ============================================================
+   DATOS DE PRUEBA (escala 0-100, minima 70)
+
+   Casos incluidos (ciclo 2026-2 salvo que se indique):
+     3A · Taller de Investigacion  -> todos con parciales 1 y 2, falta el 3
+     3B · Base de Datos            -> todos con parciales 1 y 2, falta el 3
+     5A · Redes de Computadoras    -> solo 4 alumnos con parcial 3, 4 sin el
+     3A · Programacion             -> Ricardo con 70/70/70 (justo en el minimo)
+     3B · Programacion             -> Hector: reprobo y esta "En extraordinario"
+                                   -> Oscar: reprobo 1ra extra, "Pendiente siguiente"
+     5A · Redes                    -> Karla: reprobo, "Pendiente de extraordinario"
+     2026-1 · 2A                   -> Luis aprobo en 1ra extraordinaria
+                                   -> Jose quedo "Reprobado" (2 extras reprobadas)
+
+   Las calificaciones "normales" son aleatorias pero reproducibles
+   (setseed) y siempre aprueban (cada parcial >= 70).
+   ============================================================ */
 
 SELECT setseed(0.42);
 
@@ -399,30 +417,43 @@ JOIN Grupo g             ON g.GrupoID = ga.GrupoID
 JOIN CicloEscolar ci     ON ci.CicloID = g.CicloID
 JOIN Asignatura s        ON s.AsignaturaID = ga.AsignaturaID;
 
+-- Parciales aleatorios: "habilidad" base 77-98, cada parcial varia +-7
+-- (minimo 70, maximo 100), asi todos aprueban por defecto.
 WITH base AS MATERIALIZED (
-    SELECT InscripcionID, 7.0 + random() * 2.8 AS habilidad
+    SELECT InscripcionID, 77.0 + random() * 21.0 AS habilidad
     FROM tmp_insc
 )
 INSERT INTO CalificacionParcial (InscripcionID, NumeroParcial, Calificacion)
 SELECT b.InscripcionID,
        p.n,
-       ROUND(LEAST(10, GREATEST(0, b.habilidad + (random() - 0.5) * 1.4))::numeric, 1)
+       ROUND(LEAST(100, GREATEST(0, b.habilidad + (random() - 0.5) * 14))::numeric, 0)
 FROM base b
 CROSS JOIN generate_series(1, 3) AS p(n);
 
+-- Casos especificos
 UPDATE CalificacionParcial cp
 SET Calificacion = v.cal
 FROM (VALUES
-    ('22022096','2026-2','3A','AED-1286',1, 9.0), ('22022096','2026-2','3A','AED-1286',2, 8.5), ('22022096','2026-2','3A','AED-1286',3, 9.5),
-    ('22022096','2026-2','3A','BDD-1004',1, 8.0), ('22022096','2026-2','3A','BDD-1004',2, 7.5), ('22022096','2026-2','3A','BDD-1004',3, 8.5),
-    ('22022096','2026-2','3A','ACA-0909',1, 9.0), ('22022096','2026-2','3A','ACA-0909',2, 9.5),
-    ('22022096','2026-1','2A','SCD-1008',1, 5.0), ('22022096','2026-1','2A','SCD-1008',2, 4.5), ('22022096','2026-1','2A','SCD-1008',3, 5.5),
-    ('22022096','2026-1','2A','MAT-1010',1, 8.0), ('22022096','2026-1','2A','MAT-1010',2, 9.0), ('22022096','2026-1','2A','MAT-1010',3, 8.5),
-    ('22021045','2026-1','2A','MAT-1010',1, 4.0), ('22021045','2026-1','2A','MAT-1010',2, 4.5), ('22021045','2026-1','2A','MAT-1010',3, 5.0),
-    ('22021128','2026-2','3B','AED-1286',1, 4.0), ('22021128','2026-2','3B','AED-1286',2, 5.5), ('22021128','2026-2','3B','AED-1286',3, 5.0),
-    ('22021163','2026-2','3B','AED-1286',1, 5.0), ('22021163','2026-2','3B','AED-1286',2, 4.5), ('22021163','2026-2','3B','AED-1286',3, 5.5),
-    ('22020214','2026-2','5A','RED-1015',1, 5.0), ('22020214','2026-2','5A','RED-1015',2, 5.5), ('22020214','2026-2','5A','RED-1015',3, 4.5),
-    ('22021089','2026-2','3A','AED-1286',1, 6.0), ('22021089','2026-2','3A','AED-1286',2, 6.0), ('22021089','2026-2','3A','AED-1286',3, 6.0)
+    -- Luis · 2026-2 · Programacion: promedio 90
+    ('22022096','2026-2','3A','AED-1286',1, 90), ('22022096','2026-2','3A','AED-1286',2, 85), ('22022096','2026-2','3A','AED-1286',3, 95),
+    -- Luis · 2026-2 · Base de Datos: promedio 80
+    ('22022096','2026-2','3A','BDD-1004',1, 80), ('22022096','2026-2','3A','BDD-1004',2, 75), ('22022096','2026-2','3A','BDD-1004',3, 85),
+    -- Luis · 2026-2 · Taller de Investigacion: solo parciales 1 y 2 (el 3 se borra abajo)
+    ('22022096','2026-2','3A','ACA-0909',1, 90), ('22022096','2026-2','3A','ACA-0909',2, 95),
+    -- Luis · 2026-1 · Fundamentos de Programacion: reprobo ordinario (prom 50) -> aprobo extra
+    ('22022096','2026-1','2A','SCD-1008',1, 50), ('22022096','2026-1','2A','SCD-1008',2, 45), ('22022096','2026-1','2A','SCD-1008',3, 55),
+    -- Luis · 2026-1 · Matematicas Discretas: promedio 85
+    ('22022096','2026-1','2A','MAT-1010',1, 80), ('22022096','2026-1','2A','MAT-1010',2, 90), ('22022096','2026-1','2A','MAT-1010',3, 85),
+    -- Jose · 2026-1 · Matematicas Discretas: reprobo todo (quedara "Reprobado")
+    ('22021045','2026-1','2A','MAT-1010',1, 40), ('22021045','2026-1','2A','MAT-1010',2, 45), ('22021045','2026-1','2A','MAT-1010',3, 50),
+    -- Hector · 3B · Programacion: reprobo (prom 48.33) -> "En extraordinario"
+    ('22021128','2026-2','3B','AED-1286',1, 40), ('22021128','2026-2','3B','AED-1286',2, 55), ('22021128','2026-2','3B','AED-1286',3, 50),
+    -- Oscar · 3B · Programacion: reprobo (prom 50) -> reprobo 1ra extra
+    ('22021163','2026-2','3B','AED-1286',1, 50), ('22021163','2026-2','3B','AED-1286',2, 45), ('22021163','2026-2','3B','AED-1286',3, 55),
+    -- Karla · 5A · Redes: reprobo (prom 50) -> "Pendiente de extraordinario"
+    ('22020214','2026-2','5A','RED-1015',1, 50), ('22020214','2026-2','5A','RED-1015',2, 55), ('22020214','2026-2','5A','RED-1015',3, 45),
+    -- Ricardo · 3A · Programacion: justo en el minimo (70 aprueba)
+    ('22021089','2026-2','3A','AED-1286',1, 70), ('22021089','2026-2','3A','AED-1286',2, 70), ('22021089','2026-2','3A','AED-1286',3, 70)
 ) AS v(matricula, ciclo, grupo, clave, parcial, cal)
 JOIN tmp_insc t ON t.Matricula   = v.matricula
                AND t.NombreCiclo = v.ciclo
@@ -431,6 +462,7 @@ JOIN tmp_insc t ON t.Matricula   = v.matricula
 WHERE cp.InscripcionID = t.InscripcionID
   AND cp.NumeroParcial = v.parcial;
 
+-- Parciales pendientes: borrar el parcial 3 donde "aun no se captura"
 DELETE FROM CalificacionParcial cp
 USING tmp_insc t
 WHERE cp.InscripcionID = t.InscripcionID
@@ -443,14 +475,15 @@ WHERE cp.InscripcionID = t.InscripcionID
          AND t.Matricula NOT IN ('22020201', '22020214', '22020226', '22020239'))
   );
 
+-- Extraordinarios (orden 2 = 1ra extra, 3 = 2da extra)
 INSERT INTO Extraordinario (InscripcionID, OportunidadID, Calificacion, FechaExamen)
 SELECT t.InscripcionID, o.OportunidadID, v.cal, v.fecha::date
 FROM (VALUES
-    ('22022096','2026-1','2A','SCD-1008', 2, 7.5,  '2026-06-22'),
-    ('22021045','2026-1','2A','MAT-1010', 2, 5.0,  '2026-06-22'),
-    ('22021045','2026-1','2A','MAT-1010', 3, 5.5,  '2026-06-29'),
+    ('22022096','2026-1','2A','SCD-1008', 2, 75,   '2026-06-22'),
+    ('22021045','2026-1','2A','MAT-1010', 2, 50,   '2026-06-22'),
+    ('22021045','2026-1','2A','MAT-1010', 3, 55,   '2026-06-29'),
     ('22021128','2026-2','3B','AED-1286', 2, NULL, NULL),
-    ('22021163','2026-2','3B','AED-1286', 2, 5.0,  '2026-09-14')
+    ('22021163','2026-2','3B','AED-1286', 2, 50,   '2026-09-14')
 ) AS v(matricula, ciclo, grupo, clave, orden, cal, fecha)
 JOIN tmp_insc t   ON t.Matricula   = v.matricula
                  AND t.NombreCiclo = v.ciclo
