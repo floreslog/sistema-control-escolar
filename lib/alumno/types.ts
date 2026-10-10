@@ -14,9 +14,9 @@ export function esEstadoDefinitivo(estado: Estado): boolean {
   return estado === 'Aprobado' || estado === 'Reprobado';
 }
 
-//formatear calificacion
+//formatear calificacion (escala 0-100): enteros sin decimales, el resto hasta 2
 export function formatCalif(n: number | null | undefined): string {
-  return n === null || n === undefined || Number.isNaN(n) ? '—' : n.toFixed(2);
+  return n === null || n === undefined || Number.isNaN(n) ? '—' : String(Number(n.toFixed(2)));
 }
 
 // Orden 1 = ordinario, 2 = 1ra extra, 3 = 2da extra
