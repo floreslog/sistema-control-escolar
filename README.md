@@ -129,7 +129,7 @@ Cliente  ->  Middleware (rol)  ->  Server Component / Server Action
 
 ## Reglas de negocio
 
-- Escala de **0 a 10**; la calificación mínima aprobatoria y el número de parciales son configurables.
+- Escala de **0 a 100**; la calificación mínima aprobatoria(7) y el número de parciales(3) son configurables.
 - Un parcial vacío es **pendiente** (`NULL`), no 0.
 - Si hay extraordinario registrado, el ordinario queda cerrado.
 - Calificaciones y extraordinarios **solo se editan en ciclos activos**, y solo la última oportunidad extraordinaria.
