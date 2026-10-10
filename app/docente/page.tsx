@@ -8,6 +8,13 @@ import { formatearCalif } from '@/lib/docente/calificaciones/utils';
 import { plural } from '@/lib/docente/utils';
 import type { MateriaResumen } from '@/lib/docente/inicio/types';
 
+function porcentaje(parte: number, total: number): number {
+  if (total <= 0) return 0;
+  if (parte === total) return 100;
+  if (parte === 0) return 0;
+  return Math.min(99, Math.max(1, Math.round((parte / total) * 100)));
+}
+
 function Kpi({ etiqueta, valor, nota }: { etiqueta: string; valor: string; nota?: string }) {
   return (
     <div className={`${TARJETA} p-5`}>
@@ -32,7 +39,7 @@ export default async function DocenteInicioPage() {
 
   // Aprobación solo sobre materias ya concluidas (aprobadas o reprobadas definitivas).
   const concluidas = aprobados + reprobados;
-  const pctAprobacion = concluidas > 0 ? Math.round((aprobados / concluidas) * 100) : null;
+  const pctAprobacion = concluidas > 0 ? porcentaje(aprobados, concluidas) : null;
 
   const alertas: { texto: string; href: string }[] = [];
   if (porEnviar > 0) {
@@ -150,7 +157,7 @@ export default async function DocenteInicioPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {materias.map((m) => {
-                    const pct = m.esperados > 0 ? Math.round((m.capturados / m.esperados) * 100) : 0;
+                    const pct = porcentaje(m.capturados, m.esperados);
                     return (
                       <tr key={m.grupoAsignaturaId}>
                         <td className="px-4 py-3">
