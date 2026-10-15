@@ -6,6 +6,7 @@ vi.mock('next/headers', () => ({ cookies: vi.fn() }));
 import { verifyPassword } from '@/lib/auth';
 import { conRollback, crearPoolPrueba, leerKardex, reiniciarBD } from './helpers';
 
+const CHECK_VIOLATION = '23514';
 let pool: Pool;
 
 beforeAll(async () => {
@@ -140,7 +141,7 @@ describe('restricciones de rango en la BD (0 a 100)', () => {
           'UPDATE CalificacionParcial SET Calificacion = $2 WHERE InscripcionID = $1 AND NumeroParcial = 1',
           [inscripcionId, valor],
         ),
-      ).rejects.toThrow(/check constraint/i);
+      ).rejects.toMatchObject({ code: CHECK_VIOLATION });
     }));
 
   it.each([101, -1])('rechaza %s en un extraordinario', (valor) =>
@@ -148,7 +149,7 @@ describe('restricciones de rango en la BD (0 a 100)', () => {
       const { inscripcionId } = await leerKardex(client, '22021128', '2026-2', 'AED-1286');
       await expect(
         client.query('UPDATE Extraordinario SET Calificacion = $2 WHERE InscripcionID = $1', [inscripcionId, valor]),
-      ).rejects.toThrow(/check constraint/i);
+      ).rejects.toMatchObject({ code: CHECK_VIOLATION });
     }));
 });
 
