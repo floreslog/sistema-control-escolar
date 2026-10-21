@@ -11,6 +11,8 @@ Los docentes capturan; los alumnos consultan. Con SQL puro, hashes y autenticaci
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
+![Tests](https://img.shields.io/github/actions/workflow/status/floreslog/sistema-control-escolar/tests.yml?branch=main&label=Tests&style=flat-square)
+![Vitest](https://img.shields.io/badge/Vitest-3.2-6E9F18?style=flat-square&logo=vitest&logoColor=white)
 ![Licencia MIT](https://img.shields.io/badge/Licencia-MIT-green?style=flat-square)
 ![Estado](https://img.shields.io/badge/Estado-Estable-green?style=flat-square)
 
@@ -55,6 +57,10 @@ Es un monolito construido con **Next.js** y **PostgreSQL**, con consultas en **S
 - Recuperación de contraseña mediante pregunta de seguridad.
 - **Rate limiting** por IP y bloqueo temporal de cuenta tras intentos fallidos.
 - Indicador de fortaleza de contraseña.
+
+### Calidad
+- **Pruebas automatizadas con Vitest**: lógica de la aplicación y reglas de negocio contra una base PostgreSQL real.
+- **Integración continua con GitHub Actions**: las pruebas corren en cada push a `main` y en cada Pull Request.
 
 ---
 
@@ -102,6 +108,8 @@ Es un monolito construido con **Next.js** y **PostgreSQL**, con consultas en **S
 | Sesiones (JWT) | [`jose`](https://github.com/panva/jose) | 6.2 |
 | Hash de contraseñas | [`bcryptjs`](https://github.com/dcodeIO/bcrypt.js) | 3.0 |
 | Validación | [Zod](https://zod.dev/) | 4.6 |
+| Pruebas | [Vitest](https://vitest.dev/) | 3.2 |
+| CI | [GitHub Actions](https://github.com/features/actions) | n/a |
 
 ---
 
@@ -129,7 +137,7 @@ Cliente  ->  Middleware (rol)  ->  Server Component / Server Action
 
 ## Reglas de negocio
 
-- Escala de **0 a 100**; la calificación mínima aprobatoria(7) y el número de parciales(3) son configurables.
+- Escala de **0 a 100**; la calificación mínima aprobatoria (70) y el número de parciales (3) son configurables.
 - Un parcial vacío es **pendiente** (`NULL`), no 0.
 - Si hay extraordinario registrado, el ordinario queda cerrado.
 - Calificaciones y extraordinarios **solo se editan en ciclos activos**, y solo la última oportunidad extraordinaria.
@@ -196,6 +204,10 @@ Abre [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Compilación para producción |
 | `npm run start` | Servidor de producción |
 | `npm run lint` | Análisis con ESLint |
+| `npm test` | Todas las pruebas (unitarias y de base de datos) |
+| `npm run test:unit` | Solo pruebas unitarias, sin base de datos |
+| `npm run test:db` | Solo pruebas contra PostgreSQL |
+| `npm run test:watch` | Pruebas en modo observador (se re-ejecutan al guardar) |
 
 ### Variables de entorno
 
@@ -223,9 +235,63 @@ Los demás alumnos de prueba no tienen contraseña; deben crearla en su primer a
 
 ---
 
+## Pruebas y CI
+
+Las pruebas usan **Vitest** y se dividen en dos grupos:
+
+| Grupo | Carpeta | Base de datos | Qué cubre |
+|-------|---------|:-------------:|-----------|
+| Unitarias | `tests/unit/` | No | Captura y formato de calificaciones (0-100), hash de contraseñas y respuestas de seguridad, sesiones JWT (firma alterada, token vencido), rate limiting y fortaleza de contraseña |
+| Base de datos | `tests/db/` | Sí | Reglas de negocio que viven en las vistas SQL: estados (`Aprobado`, `Reprobado`, `En extraordinario`...), límite de aprobación en 70, restricciones `CHECK` de 0 a 100 y credenciales de prueba |
+
+Las pruebas de base de datos usan `estructura_completa_postgresql.sql` como fixture, así que cualquier cambio en las reglas del SQL queda cubierto.
+
+### Configurar la base de datos de pruebas
+
+Es una base **separada** de la de desarrollo. Se crea una sola vez:
+
+```bash
+psql -U postgres -c "CREATE DATABASE sistemacalificaciones_test;"
+```
+
+Y se indica en un archivo `.env.test.local` en la raíz (ignorado por Git):
+
+```env
+TEST_DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/sistemacalificaciones_test
+```
+
+> **Cada corrida de `npm run test:db` borra y recrea todo el esquema de esa base.** Por seguridad, las pruebas se niegan a ejecutarse si el nombre de la base no termina en `_test`.
+
+### Ejecutar las pruebas
+
+```bash
+npm test               # todo
+npm run test:unit      # solo lógica, sin base de datos
+npm run test:db        # solo reglas del SQL
+npm run test:watch     # modo observador
+```
+
+Ejecútalas desde la raíz del proyecto, antes de cada push.
+
+### Integración continua
+
+El workflow [`.github/workflows/tests.yml`](.github/workflows/tests.yml) corre en cada push a `main` y en cada Pull Request hacia `main`. Tiene dos jobs independientes:
+
+| Job | Qué ejecuta |
+|-----|-------------|
+| Tests unitarios | `npm run test:unit` |
+| Tests de base de datos | `npm run test:db`, sobre un PostgreSQL 16 temporal que se levanta dentro del propio workflow |
+
+No requiere secretos ni configuración adicional: la base de datos de prueba se crea y se destruye en cada corrida. Si algún job falla, GitHub marca el commit con una X roja y el detalle del error queda en la pestaña **Actions**.
+
+---
+
 ## Estructura del proyecto
 
 ```
+├── .github/
+│   └── workflows/
+│       └── tests.yml        # CI: tests unitarios y de base de datos
 ├── app/
 │   ├── alumno/              # Panel del alumno
 │   ├── docente/             # Panel del docente
@@ -244,7 +310,11 @@ Los demás alumnos de prueba no tienen contraseña; deben crearla en su primer a
 │   ├── passwordStrength.ts  # Fortaleza de contraseña
 │   ├── alumno/              # Capa de datos del alumno
 │   └── docente/             # Capa de datos del docente
+├── tests/
+│   ├── unit/                # Pruebas sin base de datos
+│   └── db/                  # Pruebas contra PostgreSQL (reglas del SQL)
 ├── middleware.ts            # Protección de rutas por rol
+├── vitest.config.mts        # Configuración de Vitest
 └── estructura_completa_postgresql.sql
 ```
 
