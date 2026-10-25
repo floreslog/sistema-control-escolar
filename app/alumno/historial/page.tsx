@@ -2,9 +2,15 @@ import Link from 'next/link';
 import { z } from 'zod';
 import Detalle, { ListaDatos } from '@/components/Detalle';
 import EstadoBadge from '@/components/EstadoBadge';
+import ExportarKardex from '@/components/ExportarKardex';
 import PageHeader from '@/components/PageHeader';
 import { requireAlumno } from '@/lib/alumno/requireAlumno';
-import { getCiclos, getMateriasDeCiclo, getParametros } from '@/lib/alumno/queries';
+import {
+  getCiclos,
+  getMateriasDeCiclo,
+  getParametros,
+  getPerfil,
+} from '@/lib/alumno/queries';
 import {
   esEstadoDefinitivo,
   etiquetaOportunidad,
@@ -22,14 +28,21 @@ export default async function AlumnoHistorialPage({
 }) {
   await requireAlumno();
 
-  const [ciclos, parametros, sp] = await Promise.all([getCiclos(), getParametros(), searchParams]);
+  const [ciclos, parametros, perfil, sp] = await Promise.all([
+    getCiclos(),
+    getParametros(),
+    getPerfil(),
+    searchParams,
+  ]);
 
   if (ciclos.length === 0) {
     return (
       <div>
         <PageHeader titulo="Historial" />
         <section className="rounded-xl border border-[#dcdfe3] bg-white p-6">
-          <p className="text-sm text-gray-600">Aún no tienes materias registradas en tu historial.</p>
+          <p className="text-sm text-gray-600">
+            Aún no tienes materias registradas en tu historial.
+          </p>
         </section>
       </div>
     );
@@ -38,16 +51,29 @@ export default async function AlumnoHistorialPage({
   const crudo = Array.isArray(sp.ciclo) ? sp.ciclo[0] : sp.ciclo;
   const parseado = cicloParamSchema.safeParse(crudo);
   const seleccionado =
-    (parseado.success ? ciclos.find((c) => c.cicloId === parseado.data) : undefined) ?? ciclos[0];
+    (parseado.success
+      ? ciclos.find((c) => c.cicloId === parseado.data)
+      : undefined) ?? ciclos[0];
 
   const materias = await getMateriasDeCiclo(seleccionado.cicloId);
 
   return (
     <div>
-      <PageHeader titulo="Historial" />
+      <PageHeader
+        titulo="Historial"
+        accion={
+          <ExportarKardex
+            alumnoNombre={perfil?.nombreCompleto ?? 'Alumno'}
+            ciclos={ciclos}
+          />
+        }
+      />
 
       {/* Selector de ciclo */}
-      <nav aria-label="Ciclos escolares" className="-mx-5 mb-4 overflow-x-auto px-5 min-[861px]:mx-0 min-[861px]:px-0">
+      <nav
+        aria-label="Ciclos escolares"
+        className="-mx-5 mb-4 overflow-x-auto px-5 min-[861px]:mx-0 min-[861px]:px-0"
+      >
         <ul className="flex gap-2">
           {ciclos.map((c) => {
             const activo = c.cicloId === seleccionado.cicloId;
@@ -66,7 +92,9 @@ export default async function AlumnoHistorialPage({
                   {c.activo && (
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        activo ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                        activo
+                          ? 'bg-white/20 text-white'
+                          : 'bg-gray-100 text-gray-600'
                       }`}
                     >
                       Actual
@@ -84,7 +112,11 @@ export default async function AlumnoHistorialPage({
       <section aria-label={`Materias del ciclo ${seleccionado.nombreCiclo}`}>
         <ul className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-[#dcdfe3] bg-white">
           {materias.map((m) => (
-            <FilaMateria key={m.inscripcionId} materia={m} numParciales={parametros.numParciales} />
+            <FilaMateria
+              key={m.inscripcionId}
+              materia={m}
+              numParciales={parametros.numParciales}
+            />
           ))}
         </ul>
       </section>
@@ -101,14 +133,13 @@ function resumenCiclo(c: CicloResumen): string {
   return partes.join(', ');
 }
 
-/** "Ordinario 5.00 → 1ra extraordinaria 7.50". Solo existe si hubo extraordinarios. */
 function textoRecorrido(m: MateriaHistorial): string | null {
   if (m.extras.length === 0) return null;
 
   const partes = [`Ordinario ${formatCalif(m.promedio)}`];
   for (const e of m.extras) {
     partes.push(
-      `${etiquetaOportunidad(e.orden)} ${e.calificacion === null ? 'pendiente' : formatCalif(e.calificacion)}`
+      `${etiquetaOportunidad(e.orden)} ${e.calificacion === null ? 'pendiente' : formatCalif(e.calificacion)}`,
     );
   }
   return partes.join(' → ');
@@ -128,7 +159,9 @@ function FilaMateria({
 
   const datos = [
     { etiqueta: 'Clave', valor: m.clave },
-    ...(m.creditos !== null ? [{ etiqueta: 'Créditos', valor: String(m.creditos) }] : []),
+    ...(m.creditos !== null
+      ? [{ etiqueta: 'Créditos', valor: String(m.creditos) }]
+      : []),
     { etiqueta: 'Grupo', valor: m.nombreGrupo },
     {
       etiqueta: 'Parciales del ordinario',
@@ -150,7 +183,9 @@ function FilaMateria({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
         <div className="min-w-0">
           <h3 className="font-semibold text-gray-900">{m.nombre}</h3>
-          {recorrido && <p className="mt-1 text-sm text-gray-600">{recorrido}</p>}
+          {recorrido && (
+            <p className="mt-1 text-sm text-gray-600">{recorrido}</p>
+          )}
           {aproboEnExtra && (
             <p className="mt-0.5 text-sm font-medium text-green-700">
               Aprobó en {etiquetaOportunidad(m.oportunidadActual)}
@@ -160,8 +195,12 @@ function FilaMateria({
 
         <div className="flex items-center justify-between gap-4 sm:shrink-0 sm:flex-col sm:items-end sm:gap-2">
           <div className="sm:text-right">
-            <p className="text-xl font-bold text-gray-900">{formatCalif(valor)}</p>
-            <p className="text-xs text-gray-500">{definitiva ? 'Final' : 'Promedio parcial'}</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCalif(valor)}
+            </p>
+            <p className="text-xs text-gray-500">
+              {definitiva ? 'Final' : 'Promedio parcial'}
+            </p>
           </div>
           <EstadoBadge estado={m.estado} />
         </div>
