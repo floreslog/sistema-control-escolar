@@ -94,6 +94,14 @@ Es un monolito construido con **Next.js** y **PostgreSQL**, con consultas en **S
 
 ![Historial del alumno](docs/capturas/alumno-historial.png)
 
+### Panel del alumno: filtros para exportar Kardex
+
+![Filtros para exportar](docs/capturas/alumno-filtros-kardex.png)
+
+### Panel del alumno: Kardex generado
+
+![Kardex del alumno](docs/capturas/alumno-kardex.png)
+
 ---
 
 ## Stack tecnológico
