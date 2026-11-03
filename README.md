@@ -14,7 +14,6 @@ Los docentes capturan; los alumnos consultan. Con SQL puro, hashes y autenticaci
 ![Tests](https://img.shields.io/github/actions/workflow/status/floreslog/sistema-control-escolar/tests.yml?branch=main&label=Tests&style=flat-square)
 ![Vitest](https://img.shields.io/badge/Vitest-3.2-6E9F18?style=flat-square&logo=vitest&logoColor=white)
 ![Licencia MIT](https://img.shields.io/badge/Licencia-MIT-green?style=flat-square)
-![Estado](https://img.shields.io/badge/Estado-Estable-green?style=flat-square)
 
 </div>
 
